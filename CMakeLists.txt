@@ -8,6 +8,8 @@ project(
     LANGUAGES CXX
 )
 
+option(MEETING_BUILD_TESTS "Build tests for Meeting" ON)
+
 # Prevent in-source builds
 if(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
     message(FATAL_ERROR "In-source builds are not allowed")
@@ -22,3 +24,6 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 endif()
 
 add_subdirectory(src)
+if(MEETING_BUILD_TESTS)
+    add_subdirectory(tests)
+endif()
