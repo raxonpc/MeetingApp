@@ -21,4 +21,10 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     set(CMAKE_CXX_EXTENSIONS OFF)
 endif()
 
+include(FindSQLite3)
+
+if(NOT SQLite3_FOUND)
+    message(FATAL_ERROR "Error: SQLite3 is required to build MeetingApp")
+endif()
+
 add_subdirectory(src)
