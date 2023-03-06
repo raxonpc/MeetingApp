@@ -1,4 +1,4 @@
-#include "Database.hpp"
+#include "MeetingLib/Database.hpp"
 #include "sqlite3.h"
 
 namespace MeetingLib {
