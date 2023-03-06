@@ -2,7 +2,7 @@
 
 # file(GLOB HEADER_LIST CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/include/meeting/*.hpp")
 
-add_library(meeting_lib Database.cpp ${HEADER_LIST})
+add_library(meeting_lib Schema.cpp Database.cpp ${HEADER_LIST})
 
 # We need this directory, and users of our library will need it too
 target_include_directories(meeting_lib PUBLIC ../include PRIVATE ${SQLite3_INCLUDE_DIRS})
