@@ -7,10 +7,13 @@ namespace MeetingLib {
     public:
         Database(const std::filesystem::path& path_to_db);
         ~Database();
-    
+
+        
     private:
         struct Impl;
         Impl* m_impl;
+
+        void create_database();
     };
 }
 
