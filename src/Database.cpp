@@ -87,5 +87,6 @@ namespace MeetingLib
             sqlite3_free(error_msg);
             throw std::runtime_error{exception_msg};
         }
+        sqlite3_free(error_msg);
     }
 }
