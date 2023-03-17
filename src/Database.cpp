@@ -30,7 +30,7 @@ namespace MeetingLib
 
     Database::ErrorCode Database::add_user(const User &user) noexcept
     {
-        if(!is_nickname_valid(user.getNickname())) {
+        if(!is_nickname_valid(user.get_nickname())) {
             return ErrorCode::invalidNickname;
         }
 
@@ -41,7 +41,7 @@ namespace MeetingLib
         {
             return ErrorCode::internalError;
         }
-        status = sqlite3_bind_text(insert_stmt, 1, user.getNickname().c_str(), -1, SQLITE_TRANSIENT);
+        status = sqlite3_bind_text(insert_stmt, 1, user.get_nickname().c_str(), -1, SQLITE_TRANSIENT);
         if (status != SQLITE_OK)
         {
             return ErrorCode::internalError;
@@ -135,6 +135,25 @@ namespace MeetingLib
     
         return ErrorCode::ok;
     };
+
+    Database::ErrorCode Database::delete_user(int id) noexcept {
+        auto found_user = find_user(id);
+        if(found_user.m_err != ErrorCode::ok) {
+            return found_user.m_err;
+        }
+
+        std::string delete_query = "delete from Users where id = \'";
+        delete_query += std::to_string(id);
+        delete_query += "\';";
+
+        int status = sqlite3_exec(m_impl->m_db, delete_query.c_str(), nullptr, nullptr, nullptr);
+    
+        if(status != SQLITE_OK) {
+            return ErrorCode::internalError;
+        }
+    
+        return ErrorCode::ok;
+    }
 
 
     void Database::create_database()

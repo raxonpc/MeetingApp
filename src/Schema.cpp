@@ -34,24 +34,24 @@ namespace MeetingLib
                 "The nickname can only consist of ASCII / ISO 8859-1 (Latin-1) letters" };
         }
         m_nickname = nickname;
-        setId(id);
+        set_id(id);
     }
 
-    std::optional<int> User::getId() const noexcept {
+    std::optional<int> User::get_id() const noexcept {
         return m_id;
     }
 
-    std::string User::getNickname() const noexcept {
+    std::string User::get_nickname() const noexcept {
         return m_nickname;
     }
 
-    void User::setId(int id) noexcept {
+    void User::set_id(int id) noexcept {
         if(id >= 1) {
             m_id = id;
         }
     }
 
-    void User::setNickname(std::string_view nickname) noexcept {
+    void User::set_nickname(std::string_view nickname) noexcept {
         if(is_nickname_valid(nickname)) {
             m_nickname = nickname;
         }
@@ -75,10 +75,10 @@ namespace MeetingLib
             };
         }
         m_date = date;
-        setId(id);
+        set_id(id);
     }
 
-    void Meeting::setId(int id) noexcept {
+    void Meeting::set_id(int id) noexcept {
         if(id >= 1) {
             m_id = id;
         }

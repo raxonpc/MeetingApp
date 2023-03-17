@@ -17,11 +17,11 @@ public:
     User(std::string_view nickname);
     User(std::string_view nickname, int id);
 
-    std::optional<int> getId() const noexcept;
-    std::string getNickname() const noexcept;
+    std::optional<int> get_id() const noexcept;
+    std::string get_nickname() const noexcept;
     
-    void setId(int) noexcept;
-    void setNickname(std::string_view) noexcept;
+    void set_id(int) noexcept;
+    void set_nickname(std::string_view) noexcept;
 private:
     std::string m_nickname{};
     std::optional<int> m_id{ std::nullopt };
@@ -32,7 +32,7 @@ public:
     Meeting(const Date& date);
     Meeting(const Date& date, int id);
     
-    void setId(int) noexcept;
+    void set_id(int) noexcept;
 private:
     Date m_date{};
     std::optional<int> m_id{ std::nullopt };

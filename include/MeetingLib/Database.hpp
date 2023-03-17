@@ -31,6 +31,8 @@ namespace MeetingLib {
         Result<User> find_user(int) noexcept;
 
         ErrorCode update_user(int, std::string_view) noexcept;
+        ErrorCode delete_user(int) noexcept;
+
 
         
     private:

@@ -42,10 +42,10 @@ TEST_CASE( "finding user in database", "[user][database]") {
         Database::ErrorCode code = db.add_user(user);
         REQUIRE(code == Database::ErrorCode::ok);
 
-        auto found_user = db.find_user(user.getNickname());
+        auto found_user = db.find_user(user.get_nickname());
         REQUIRE(found_user.m_err == Database::ErrorCode::ok);
-        REQUIRE(found_user.m_some->getId() == 1);
-        REQUIRE(found_user.m_some->getNickname() == user.getNickname());
+        REQUIRE(found_user.m_some->get_id() == 1);
+        REQUIRE(found_user.m_some->get_nickname() == user.get_nickname());
     }
 
     SECTION( "should insert to database and find it by id" ) {
@@ -56,8 +56,8 @@ TEST_CASE( "finding user in database", "[user][database]") {
         // the previous test should test if 1 is the valid ID
         auto found_user = db.find_user(1);
         REQUIRE(found_user.m_err == Database::ErrorCode::ok);
-        REQUIRE(found_user.m_some->getId() == 1);
-        REQUIRE(found_user.m_some->getNickname() == user.getNickname());
+        REQUIRE(found_user.m_some->get_id() == 1);
+        REQUIRE(found_user.m_some->get_nickname() == user.get_nickname());
 
 
     }
@@ -65,7 +65,7 @@ TEST_CASE( "finding user in database", "[user][database]") {
     SECTION( "should not find user if it was not added" ) {
         Database db{ ":memory:" };
     
-        auto found_user = db.find_user(user.getNickname());
+        auto found_user = db.find_user(user.get_nickname());
         REQUIRE(found_user.m_err == Database::ErrorCode::userNotFound);
     }
 }
@@ -79,13 +79,32 @@ TEST_CASE( "update user in database", "[user][database]") {
         REQUIRE(code == Database::ErrorCode::ok);
 
         code = db.update_user(
-            *db.find_user(user.getNickname())
-            .m_some->getId(), "Jessie");
+            *db.find_user(user.get_nickname())
+            .m_some->get_id(), "Jessie");
         REQUIRE(code == Database::ErrorCode::ok);
 
         auto found_user = db.find_user("Jessie");
         REQUIRE(found_user.m_err == Database::ErrorCode::ok);
-        REQUIRE(found_user.m_some->getId() == 1);
-        REQUIRE(found_user.m_some->getNickname() == "Jessie");
+        REQUIRE(found_user.m_some->get_id() == 1);
+        REQUIRE(found_user.m_some->get_nickname() == "Jessie");
+    }
+}
+
+TEST_CASE( "delete user from database", "[user][database]") {
+    User user{ "Walter" };
+    
+    SECTION( "should delete user" ) {
+        Database db{ ":memory:" };
+        Database::ErrorCode code = db.add_user(user);
+        REQUIRE(code == Database::ErrorCode::ok);
+
+        code = db.delete_user(
+            *db.find_user(user.get_nickname()).m_some->get_id()
+        );
+
+        REQUIRE(code == Database::ErrorCode::ok);
+
+        auto found_user = db.find_user(user.get_nickname());
+        REQUIRE(found_user.m_err == Database::ErrorCode::userNotFound);
     }
 }
