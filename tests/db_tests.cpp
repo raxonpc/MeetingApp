@@ -108,3 +108,23 @@ TEST_CASE( "delete user from database", "[user][database]") {
         REQUIRE(found_user.m_err == Database::ErrorCode::userNotFound);
     }
 }
+
+TEST_CASE( "should convert a date to string", "[meeting]") {
+    Date date{ std::chrono::day{22}/3/2023 };
+    std::string expected = "2023/3/22";
+
+    std::string converted = date_to_string(date);
+
+    REQUIRE(converted == expected);
+}
+
+TEST_CASE( "inserting meeting into database", "[meeting][database]") {
+    Meeting meeting{ std::chrono::day{22}/3/2023, Hours{ 2 }};
+    
+    SECTION( "should insert to database" ) {
+        Database db{ ":memory:" };
+        Database::ErrorCode code = db.add_meeting(meeting);
+        REQUIRE(code == Database::ErrorCode::ok);
+    }
+    
+}

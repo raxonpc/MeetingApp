@@ -155,6 +155,35 @@ namespace MeetingLib
         return ErrorCode::ok;
     }
 
+    Database::ErrorCode Database::add_meeting(const Meeting& meeting) noexcept {
+        sqlite3_stmt *insert_stmt;
+
+        int status = sqlite3_prepare_v2(m_impl->m_db, "insert into Meetings (date, duration) values (?, ?);", -1, &insert_stmt, NULL);
+        if (status != SQLITE_OK)
+        {
+            return ErrorCode::internalError;
+        }
+        status = sqlite3_bind_text(insert_stmt, 1, date_to_string(meeting.get_date()).c_str(), -1, SQLITE_TRANSIENT);
+        if (status != SQLITE_OK)
+        {
+            return ErrorCode::internalError;
+        }
+        status = sqlite3_bind_int(insert_stmt, 2, meeting.get_duration().count());
+        if (status != SQLITE_OK)
+        {
+            return ErrorCode::internalError;
+        }
+        status = sqlite3_step(insert_stmt);
+        sqlite3_finalize(insert_stmt);
+        switch (status)
+        {
+            case SQLITE_DONE: break;
+            default: return ErrorCode::internalError;
+        }
+
+        return ErrorCode::ok;
+    }
+
 
     void Database::create_database()
     {
@@ -166,9 +195,8 @@ namespace MeetingLib
 
             "CREATE TABLE IF NOT EXISTS Meetings ("
             "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"
-            "datetime TEXT NOT NULL,"
-            "duration_hours INTEGER,"
-            "duration_minutes INTEGER);"
+            "date TEXT NOT NULL,"
+            "duration INTEGER NOT NULL);"
 
             "CREATE TABLE IF NOT EXISTS Users_Meetings ("
             "user_id INTEGER REFERENCES Users(id),"

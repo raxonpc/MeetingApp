@@ -13,6 +13,7 @@ namespace MeetingLib {
             ok,
             databaseNotCreated,
             invalidNickname,
+            invalidDate,
             userAlreadyExists,
             userNotFound,
             internalError,
@@ -34,6 +35,7 @@ namespace MeetingLib {
         ErrorCode delete_user(int) noexcept;
 
 
+        ErrorCode add_meeting(const Meeting&) noexcept;
         
     private:
         struct Impl;

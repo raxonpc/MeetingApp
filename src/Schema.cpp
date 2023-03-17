@@ -57,30 +57,71 @@ namespace MeetingLib
         }
     }
 
-    Meeting::Meeting(const Date& date)
+    Meeting::Meeting(const Date& date, const Hours& duration)
     {
-        if(date.ok()) {
+        if(!date.ok()) {
             throw std::runtime_error{
                 "Invalid date entered!"
             };
         }
+        if(duration.count() <= 0) {
+            throw std::runtime_error{
+                "Invalid duration!"
+            };
+        }
+        m_duration = duration;
         m_date = date;
     }
 
-    Meeting::Meeting(const Date& date, int id)
+    Meeting::Meeting(const Date& date, const Hours& duration, int id)
     {
-        if(date.ok()) {
+        if(!date.ok()) {
             throw std::runtime_error{
-                "Invalid date entered!"
+                "Invalid date!"
+            };
+        }
+        if(duration.count() <= 0) {
+            throw std::runtime_error{
+                "Invalid duration!"
             };
         }
         m_date = date;
+        m_duration = duration;
         set_id(id);
+    }
+
+    std::optional<int> Meeting::get_id() const noexcept {
+        return m_id;
+    }
+    Date Meeting::get_date() const noexcept {
+        return m_date;
+    }
+
+    Hours Meeting::get_duration() const noexcept {
+        return m_duration;
     }
 
     void Meeting::set_id(int id) noexcept {
         if(id >= 1) {
             m_id = id;
         }
+    }
+
+    void Meeting::set_date(const Date& date) noexcept {
+        if(date.ok()) {
+            m_date = date;
+        }
+    }
+
+    std::string date_to_string(const Date& date) {
+        std::string output;
+        output.reserve(11);
+        output += std::to_string(static_cast<int>(date.year()));
+        output += '/';
+        output += std::to_string(static_cast<unsigned int>(date.month()));
+        output += '/';
+        output += std::to_string(static_cast<unsigned int>(date.day()));
+
+        return output;
     }
 }

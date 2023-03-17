@@ -8,6 +8,7 @@
 namespace MeetingLib {
 
 using Date = std::chrono::year_month_day;
+using Hours = std::chrono::hours;
 
 bool is_nickname_valid(std::string_view nickname);
 
@@ -29,13 +30,23 @@ private:
 
 struct Meeting {
 public:
-    Meeting(const Date& date);
-    Meeting(const Date& date, int id);
+    Meeting(const Date& date, const Hours& duration);
+    Meeting(const Date& date, const Hours& duration, int id);
     
+    std::optional<int> get_id() const noexcept;
+    Date get_date() const noexcept;
+    Hours get_duration() const noexcept;
+
     void set_id(int) noexcept;
+    void set_date(const Date&) noexcept;
+    void set_duration(const Hours&) noexcept;
 private:
     Date m_date{};
+    Hours m_duration{};
     std::optional<int> m_id{ std::nullopt };
 };
+
+// TODO:
+std::string date_to_string(const Date& date);
 
 }
