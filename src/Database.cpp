@@ -42,7 +42,7 @@ namespace MeetingLib
         {
             return ErrorCode::internalError;
         }
-        status = sqlite3_bind_text(insert_stmt, 1, user.m_nickname.c_str(), -1, SQLITE_TRANSIENT);
+        status = sqlite3_bind_text(insert_stmt, 1, user.getNickname().c_str(), -1, SQLITE_TRANSIENT);
         if (status != SQLITE_OK)
         {
             return ErrorCode::internalError;
@@ -57,6 +57,56 @@ namespace MeetingLib
         }
 
         return ErrorCode::ok;
+    }
+
+    Database::Result<User> Database::find_user(std::string_view nickname) noexcept {
+        std::optional<User> output;
+
+        std::string select_query = "select * from Users where nickname = \'";
+        select_query += nickname;
+        select_query += "\';";
+
+        auto add_callback = [](void* out, int argc, char** argv, char** colNames) {
+            auto user = static_cast<std::optional<User>*>(out);
+            *user = User{ argv[1], std::stoi(argv[0])};
+            return 0;
+        };
+
+        int status = sqlite3_exec(m_impl->m_db, select_query.c_str(), add_callback, (void*)&output, nullptr);
+
+        if(status != SQLITE_OK) {
+            return Result<User>{ .m_some = std::nullopt, .m_err = ErrorCode::internalError };
+        }
+
+        if(output == std::nullopt) {
+            return Result<User>{ .m_some = std::nullopt, .m_err = ErrorCode::userNotFound };
+        }
+        return Result<User>{ .m_some = output, .m_err = ErrorCode::ok };
+    }
+
+    Database::Result<User> Database::find_user(int id) noexcept {
+        std::optional<User> output;
+
+        std::string select_query = "select * from Users where id = \'";
+        select_query += std::to_string(id);
+        select_query += "\';";
+
+        auto add_callback = [](void* out, int argc, char** argv, char** colNames) {
+            auto user = static_cast<std::optional<User>*>(out);
+            *user = User{ argv[1], std::stoi(argv[0])};
+            return 0;
+        };
+
+        int status = sqlite3_exec(m_impl->m_db, select_query.c_str(), add_callback, (void*)&output, nullptr);
+
+        if(status != SQLITE_OK) {
+            return Result<User>{ .m_some = std::nullopt, .m_err = ErrorCode::internalError };
+        }
+
+        if(output == std::nullopt) {
+            return Result<User>{ .m_some = std::nullopt, .m_err = ErrorCode::userNotFound };
+        }
+        return Result<User>{ .m_some = output, .m_err = ErrorCode::ok };
     }
 
     void Database::create_database()

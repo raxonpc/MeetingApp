@@ -13,12 +13,16 @@ bool is_nickname_valid(std::string_view nickname);
 
 struct User {
 public:
+    User() = default;
     User(std::string_view nickname);
-    
-    friend class Database;
-private:
     User(std::string_view nickname, int id);
 
+    std::optional<int> getId() const noexcept;
+    std::string getNickname() const noexcept;
+    
+    void setId(int) noexcept;
+    void setNickname(std::string_view) noexcept;
+private:
     std::string m_nickname{};
     std::optional<int> m_id{ std::nullopt };
 };
@@ -26,11 +30,10 @@ private:
 struct Meeting {
 public:
     Meeting(const Date& date);
-    
-    friend class Database;
-private:
     Meeting(const Date& date, int id);
-
+    
+    void setId(int) noexcept;
+private:
     Date m_date{};
     std::optional<int> m_id{ std::nullopt };
 };
