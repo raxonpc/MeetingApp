@@ -30,9 +30,8 @@ namespace MeetingLib
 
     Database::ErrorCode Database::add_user(const User &user) noexcept
     {
-        if (m_impl->m_db == nullptr)
-        {
-            assert(false && "Handle should never be null");
+        if(!is_nickname_valid(user.getNickname())) {
+            return ErrorCode::invalidNickname;
         }
 
         sqlite3_stmt *insert_stmt;
@@ -61,6 +60,9 @@ namespace MeetingLib
 
     Database::Result<User> Database::find_user(std::string_view nickname) noexcept {
         std::optional<User> output;
+        if(!is_nickname_valid(nickname)) {
+            return Result<User>{ .m_some = std::nullopt, .m_err = ErrorCode::invalidNickname };
+        }
 
         std::string select_query = "select * from Users where nickname = \'";
         select_query += nickname;
@@ -108,6 +110,32 @@ namespace MeetingLib
         }
         return Result<User>{ .m_some = output, .m_err = ErrorCode::ok };
     }
+
+    Database::ErrorCode Database::update_user(int id, std::string_view new_nickname) noexcept {
+        auto user = find_user(id);
+        if(user.m_err != ErrorCode::ok) {
+            return user.m_err;
+        }
+        if(!is_nickname_valid(new_nickname)) {
+            return ErrorCode::invalidNickname;
+        }
+
+        std::string update_query = 
+            "update Users SET nickname = \'";
+        update_query += new_nickname;
+        update_query += "\' where id = \'";
+        update_query += std::to_string(id);
+        update_query += "\';";
+
+        int status = sqlite3_exec(m_impl->m_db, update_query.c_str(), nullptr, nullptr, nullptr);
+    
+        if(status != SQLITE_OK) {
+            return ErrorCode::internalError;
+        }
+    
+        return ErrorCode::ok;
+    };
+
 
     void Database::create_database()
     {

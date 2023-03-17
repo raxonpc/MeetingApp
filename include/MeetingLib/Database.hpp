@@ -12,6 +12,7 @@ namespace MeetingLib {
         enum class ErrorCode {
             ok,
             databaseNotCreated,
+            invalidNickname,
             userAlreadyExists,
             userNotFound,
             internalError,
@@ -28,6 +29,9 @@ namespace MeetingLib {
         ErrorCode add_user(const User&) noexcept;
         Result<User> find_user(std::string_view) noexcept;
         Result<User> find_user(int) noexcept;
+
+        ErrorCode update_user(int, std::string_view) noexcept;
+
         
     private:
         struct Impl;

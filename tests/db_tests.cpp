@@ -69,3 +69,23 @@ TEST_CASE( "finding user in database", "[user][database]") {
         REQUIRE(found_user.m_err == Database::ErrorCode::userNotFound);
     }
 }
+
+TEST_CASE( "update user in database", "[user][database]") {
+    User user{ "Walter" };
+    
+    SECTION( "should update user's nickname" ) {
+        Database db{ ":memory:" };
+        Database::ErrorCode code = db.add_user(user);
+        REQUIRE(code == Database::ErrorCode::ok);
+
+        code = db.update_user(
+            *db.find_user(user.getNickname())
+            .m_some->getId(), "Jessie");
+        REQUIRE(code == Database::ErrorCode::ok);
+
+        auto found_user = db.find_user("Jessie");
+        REQUIRE(found_user.m_err == Database::ErrorCode::ok);
+        REQUIRE(found_user.m_some->getId() == 1);
+        REQUIRE(found_user.m_some->getNickname() == "Jessie");
+    }
+}
