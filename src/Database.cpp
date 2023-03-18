@@ -19,7 +19,7 @@ namespace MeetingLib
             throw std::runtime_error{std::string{"Cannot open database: "} + path_to_db.c_str()};
         }
 
-        create_database();
+        create();
     }
 
     Database::~Database()
@@ -28,10 +28,10 @@ namespace MeetingLib
         delete m_impl;
     }
 
-    Database::ErrorCode Database::add_user(const User &user) noexcept
+    Database::Result<int> Database::add_user(const User &user) noexcept
     {
         if(!is_nickname_valid(user.get_nickname())) {
-            return ErrorCode::invalidNickname;
+            return { .m_err = ErrorCode::invalidNickname };
         }
 
         sqlite3_stmt *insert_stmt;
@@ -39,23 +39,23 @@ namespace MeetingLib
         int status = sqlite3_prepare_v2(m_impl->m_db, "insert into Users (nickname) values (?);", -1, &insert_stmt, NULL);
         if (status != SQLITE_OK)
         {
-            return ErrorCode::internalError;
+            return { .m_err = ErrorCode::internalError };
         }
         status = sqlite3_bind_text(insert_stmt, 1, user.get_nickname().c_str(), -1, SQLITE_TRANSIENT);
         if (status != SQLITE_OK)
         {
-            return ErrorCode::internalError;
+            return { .m_err = ErrorCode::internalError };
         }
         status = sqlite3_step(insert_stmt);
         sqlite3_finalize(insert_stmt);
         switch (status)
         {
             case SQLITE_DONE: break;
-            case SQLITE_CONSTRAINT: return ErrorCode::userAlreadyExists;
-            default: return ErrorCode::internalError;
+            case SQLITE_CONSTRAINT: return { .m_err = ErrorCode::userAlreadyExists };
+            default: return { .m_err = ErrorCode::internalError };
         }
 
-        return ErrorCode::ok;
+        return { .m_some = sqlite3_last_insert_rowid(m_impl->m_db), .m_err = ErrorCode::ok };
     }
 
     Database::Result<User> Database::find_user(std::string_view nickname) noexcept {
@@ -155,37 +155,62 @@ namespace MeetingLib
         return ErrorCode::ok;
     }
 
-    Database::ErrorCode Database::add_meeting(const Meeting& meeting) noexcept {
+    Database::Result<int> Database::add_meeting(const Meeting& meeting) noexcept {
         sqlite3_stmt *insert_stmt;
 
         int status = sqlite3_prepare_v2(m_impl->m_db, "insert into Meetings (date, duration) values (?, ?);", -1, &insert_stmt, NULL);
         if (status != SQLITE_OK)
         {
-            return ErrorCode::internalError;
+            return { .m_err = ErrorCode::internalError };
         }
         status = sqlite3_bind_text(insert_stmt, 1, date_to_string(meeting.get_date()).c_str(), -1, SQLITE_TRANSIENT);
         if (status != SQLITE_OK)
         {
-            return ErrorCode::internalError;
+            return { .m_err = ErrorCode::internalError };
         }
         status = sqlite3_bind_int(insert_stmt, 2, meeting.get_duration().count());
         if (status != SQLITE_OK)
         {
-            return ErrorCode::internalError;
+            return { .m_err = ErrorCode::internalError };
         }
         status = sqlite3_step(insert_stmt);
         sqlite3_finalize(insert_stmt);
         switch (status)
         {
             case SQLITE_DONE: break;
-            default: return ErrorCode::internalError;
+            default: return { .m_err = ErrorCode::internalError };
         }
 
-        return ErrorCode::ok;
+        return { .m_some = sqlite3_last_insert_rowid(m_impl->m_db), .m_err = ErrorCode::ok };
     }
 
+    Database::ErrorCode Database::add_meeting_to_user(const Meeting& meeting, int id) noexcept {
+        auto added_meeting = add_meeting(meeting);
+        if(added_meeting.m_err != ErrorCode::ok) {
+            return added_meeting.m_err;
+        }
 
-    void Database::create_database()
+        auto found_user = find_user(id);
+        if(found_user.m_err != ErrorCode::ok) {
+            return found_user.m_err;
+        }
+
+        std::string insert_query = "insert into Users_Meetings (user_id, meeting_id) values (";
+        insert_query += std::to_string(id);
+        insert_query += ", ";
+        insert_query += std::to_string(*added_meeting.m_some);
+        insert_query += ");";
+
+        int status = sqlite3_exec(m_impl->m_db, insert_query.c_str(), nullptr, nullptr, nullptr);
+    
+        switch(status) {
+            case SQLITE_CONSTRAINT: return ErrorCode::nonExistentField;
+            case SQLITE_OK: return ErrorCode::ok;
+            default: return ErrorCode::internalError;
+        }
+    }
+
+    void Database::create()
     {
         static constexpr std::string_view create_base_query{
             "PRAGMA foreign_keys = ON;"

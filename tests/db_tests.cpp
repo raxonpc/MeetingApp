@@ -22,15 +22,15 @@ TEST_CASE( "inserting user into database", "[user][database]") {
     
     SECTION( "should insert to database" ) {
         Database db{ ":memory:" };
-        Database::ErrorCode code = db.add_user(user);
-        REQUIRE(code == Database::ErrorCode::ok);
+        auto code = db.add_user(user);
+        REQUIRE(code.m_err == Database::ErrorCode::ok);
     }
     SECTION( "duplicates are not allowed" ) {
         Database db{ ":memory:" };
-        Database::ErrorCode code1 = db.add_user(user);
-        Database::ErrorCode code2 = db.add_user(user);
-        REQUIRE(code1 == Database::ErrorCode::ok);
-        REQUIRE(code2 == Database::ErrorCode::userAlreadyExists);
+        auto code1 = db.add_user(user);
+        auto code2 = db.add_user(user);
+        REQUIRE(code1.m_err == Database::ErrorCode::ok);
+        REQUIRE(code2.m_err == Database::ErrorCode::userAlreadyExists);
     }
 }
 
@@ -39,19 +39,19 @@ TEST_CASE( "finding user in database", "[user][database]") {
     
     SECTION( "should insert to database and find it by nickname" ) {
         Database db{ ":memory:" };
-        Database::ErrorCode code = db.add_user(user);
-        REQUIRE(code == Database::ErrorCode::ok);
+        auto code = db.add_user(user);
+        REQUIRE(code.m_err == Database::ErrorCode::ok);
 
         auto found_user = db.find_user(user.get_nickname());
         REQUIRE(found_user.m_err == Database::ErrorCode::ok);
-        REQUIRE(found_user.m_some->get_id() == 1);
+        REQUIRE(*found_user.m_some->get_id() == *code.m_some);
         REQUIRE(found_user.m_some->get_nickname() == user.get_nickname());
     }
 
     SECTION( "should insert to database and find it by id" ) {
         Database db{ ":memory:" };
-        Database::ErrorCode code = db.add_user(user);
-        REQUIRE(code == Database::ErrorCode::ok);
+        auto code = db.add_user(user);
+        REQUIRE(code.m_err == Database::ErrorCode::ok);
 
         // the previous test should test if 1 is the valid ID
         auto found_user = db.find_user(1);
@@ -75,10 +75,10 @@ TEST_CASE( "update user in database", "[user][database]") {
     
     SECTION( "should update user's nickname" ) {
         Database db{ ":memory:" };
-        Database::ErrorCode code = db.add_user(user);
-        REQUIRE(code == Database::ErrorCode::ok);
+        auto added_user = db.add_user(user);
+        REQUIRE(added_user.m_err == Database::ErrorCode::ok);
 
-        code = db.update_user(
+        auto code = db.update_user(
             *db.find_user(user.get_nickname())
             .m_some->get_id(), "Jessie");
         REQUIRE(code == Database::ErrorCode::ok);
@@ -95,10 +95,10 @@ TEST_CASE( "delete user from database", "[user][database]") {
     
     SECTION( "should delete user" ) {
         Database db{ ":memory:" };
-        Database::ErrorCode code = db.add_user(user);
-        REQUIRE(code == Database::ErrorCode::ok);
+        auto added_user = db.add_user(user);
+        REQUIRE(added_user.m_err == Database::ErrorCode::ok);
 
-        code = db.delete_user(
+        auto code = db.delete_user(
             *db.find_user(user.get_nickname()).m_some->get_id()
         );
 
@@ -123,7 +123,22 @@ TEST_CASE( "inserting meeting into database", "[meeting][database]") {
     
     SECTION( "should insert to database" ) {
         Database db{ ":memory:" };
-        Database::ErrorCode code = db.add_meeting(meeting);
+        auto added = db.add_meeting(meeting);
+        REQUIRE(added.m_err == Database::ErrorCode::ok);
+    }
+    
+}
+
+TEST_CASE( "inserting meeting into database", "[user][meeting][database]") {
+    Meeting meeting{ std::chrono::day{22}/3/2023, Hours{ 2 }};
+    User user{ "Walter" };
+
+    SECTION( "should create a relationship" ) {
+        Database db{ ":memory:" };
+        auto added_user = db.add_user(user);
+        REQUIRE(added_user.m_err == Database::ErrorCode::ok);
+
+        auto code = db.add_meeting_to_user(meeting, *added_user.m_some);
         REQUIRE(code == Database::ErrorCode::ok);
     }
     

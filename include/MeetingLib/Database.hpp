@@ -16,6 +16,7 @@ namespace MeetingLib {
             invalidDate,
             userAlreadyExists,
             userNotFound,
+            nonExistentField,
             internalError,
         };
         template<typename T>
@@ -27,7 +28,7 @@ namespace MeetingLib {
         Database(const std::filesystem::path& path_to_db);
         ~Database();
 
-        ErrorCode add_user(const User&) noexcept;
+        Result<int> add_user(const User&) noexcept;
         Result<User> find_user(std::string_view) noexcept;
         Result<User> find_user(int) noexcept;
 
@@ -35,13 +36,14 @@ namespace MeetingLib {
         ErrorCode delete_user(int) noexcept;
 
 
-        ErrorCode add_meeting(const Meeting&) noexcept;
-        
+        Result<int> add_meeting(const Meeting&) noexcept;
+        ErrorCode add_meeting_to_user(const Meeting&, int) noexcept;
+
     private:
         struct Impl;
         Impl* m_impl;
 
-        void create_database();
+        void create();
     };
 }
 
