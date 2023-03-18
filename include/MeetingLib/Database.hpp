@@ -39,6 +39,8 @@ namespace MeetingLib {
         Result<int> add_meeting(const Meeting&) noexcept;
         ErrorCode add_meeting_to_user(const Meeting&, int) noexcept;
 
+        Result<std::vector<Meeting>> get_user_meeting(int) noexcept;
+
     private:
         struct Impl;
         Impl* m_impl;

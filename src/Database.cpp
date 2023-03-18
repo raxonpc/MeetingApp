@@ -210,6 +210,36 @@ namespace MeetingLib
         }
     }
 
+    Database::Result<std::vector<Meeting>> Database::get_user_meeting(int id) noexcept {
+        auto found_user = find_user(id);
+        if(found_user.m_err != ErrorCode::ok) {
+            return { .m_err = found_user.m_err };
+        }
+
+        auto add_callback = [](void* out, int argc, char** argv, char** colNames) {
+            auto meeting_vec = static_cast<std::vector<Meeting>*>(out);
+            int year = 0;
+            int month = 0;
+            unsigned int day = 0;
+            sscanf(argv[1], "%d/%d/%d", &year, &month, &day);
+            meeting_vec->emplace_back(Date{ std::chrono::day{day}/month/year },
+                                      std::chrono::hours{ std::atoi(argv[2]) },
+                                      std::stoi(argv[0]));
+            return 0;
+        };
+
+        std::string query = "SELECT Meetings.* FROM Meetings "
+                            "JOIN Users_Meetings ON Meetings.id = Users_Meetings.meeting_id "
+                            "WHERE Users_Meetings.user_id = " + std::to_string(id);
+
+        std::vector<Meeting> output;
+        int status = sqlite3_exec(m_impl->m_db, query.c_str(), add_callback, (void*)&output, nullptr);
+        if(status != SQLITE_OK) {
+            return { .m_some = std::nullopt, .m_err = ErrorCode::internalError };
+        }
+        return { .m_some = output, .m_err = ErrorCode::ok };
+    }
+
     void Database::create()
     {
         static constexpr std::string_view create_base_query{
@@ -239,4 +269,6 @@ namespace MeetingLib
         }
         sqlite3_free(error_msg);
     }
+
+
 }

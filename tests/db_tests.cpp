@@ -143,3 +143,30 @@ TEST_CASE( "inserting meeting into database", "[user][meeting][database]") {
     }
     
 }
+
+TEST_CASE( "fetching users' meetings from database", "[user][meeting][database]") {
+    Meeting meeting{ std::chrono::day{22}/3/2023, Hours{ 2 }};
+    User user{ "Walter" };
+
+    SECTION( "should return meetings" ) {
+        Database db{ ":memory:" };
+        auto added_user = db.add_user(user);
+        REQUIRE(added_user.m_err == Database::ErrorCode::ok);
+
+        auto code = db.add_meeting_to_user(meeting, *added_user.m_some);
+        REQUIRE(code == Database::ErrorCode::ok);
+        code = db.add_meeting_to_user(meeting, *added_user.m_some);
+        REQUIRE(code == Database::ErrorCode::ok);
+
+        auto meetings = db.get_user_meeting(*added_user.m_some);
+        REQUIRE(meetings.m_err == Database::ErrorCode::ok);
+
+        REQUIRE(meetings.m_some->size() == 2);
+        REQUIRE(meetings.m_some->at(0).get_date() == meeting.get_date());
+        REQUIRE(meetings.m_some->at(1).get_date() == meeting.get_date());
+
+        REQUIRE(meetings.m_some->at(0).get_duration() == meeting.get_duration());
+        REQUIRE(meetings.m_some->at(1).get_duration() == meeting.get_duration());
+    }
+
+}
