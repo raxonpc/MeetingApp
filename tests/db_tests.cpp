@@ -58,8 +58,6 @@ TEST_CASE( "finding user in database", "[user][database]") {
         REQUIRE(found_user.m_err == Database::ErrorCode::ok);
         REQUIRE(found_user.m_some->get_id() == 1);
         REQUIRE(found_user.m_some->get_nickname() == user.get_nickname());
-
-
     }
 
     SECTION( "should not find user if it was not added" ) {
@@ -142,6 +140,22 @@ TEST_CASE( "inserting meeting into database", "[user][meeting][database]") {
         REQUIRE(code == Database::ErrorCode::ok);
     }
     
+}
+
+TEST_CASE( "finding meeting in database", "[meeting][database]") {
+    Meeting meeting{ std::chrono::day{22}/3/2023, Hours{ 2 }};
+    SECTION( "should insert to database and find it by id" ) {
+        Database db{ ":memory:" };
+        auto code = db.add_meeting(meeting);
+        REQUIRE(code.m_err == Database::ErrorCode::ok);
+
+        // the previous test should test if 1 is the valid ID
+        auto found_meeting = db.find_meeting(1);
+        REQUIRE(found_meeting.m_err == Database::ErrorCode::ok);
+        REQUIRE(found_meeting.m_some->get_id() == 1);
+        REQUIRE(found_meeting.m_some->get_date() == meeting.get_date());
+        REQUIRE(found_meeting.m_some->get_duration() == meeting.get_duration());
+    }
 }
 
 TEST_CASE( "fetching users' meetings from database", "[user][meeting][database]") {

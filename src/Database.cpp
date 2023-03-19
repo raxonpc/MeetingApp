@@ -183,6 +183,37 @@ namespace MeetingLib
 
         return { .m_some = sqlite3_last_insert_rowid(m_impl->m_db), .m_err = ErrorCode::ok };
     }
+    
+    Database::Result<Meeting> Database::find_meeting(int id) noexcept {
+        std::optional<Meeting> output;
+
+        std::string select_query = "select * from Meetings where id = \'";
+        select_query += std::to_string(id);
+        select_query += "\';";
+
+        auto add_callback = [](void* out, int argc, char** argv, char** colNames) {
+            auto meeting = static_cast<std::optional<Meeting>*>(out);
+            int year = 0;
+            int month = 0;
+            unsigned int day = 0;
+            sscanf(argv[1], "%d/%d/%d", &year, &month, &day);
+            *meeting = Meeting{ Date{ std::chrono::day{day}/month/year },
+                                      std::chrono::hours{ std::atoi(argv[2]) },
+                                      std::stoi(argv[0]) };
+            return 0;
+        };
+
+        int status = sqlite3_exec(m_impl->m_db, select_query.c_str(), add_callback, (void*)&output, nullptr);
+
+        if(status != SQLITE_OK) {
+            return { .m_some = std::nullopt, .m_err = ErrorCode::internalError };
+        }
+
+        if(output == std::nullopt) {
+            return { .m_some = std::nullopt, .m_err = ErrorCode::meetingNotFound };
+        }
+        return { .m_some = output, .m_err = ErrorCode::ok };
+    }
 
     Database::ErrorCode Database::add_meeting_to_user(const Meeting& meeting, int id) noexcept {
         auto added_meeting = add_meeting(meeting);

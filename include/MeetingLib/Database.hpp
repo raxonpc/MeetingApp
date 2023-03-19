@@ -16,6 +16,7 @@ namespace MeetingLib {
             invalidDate,
             userAlreadyExists,
             userNotFound,
+            meetingNotFound,
             nonExistentField,
             internalError,
         };
@@ -37,6 +38,7 @@ namespace MeetingLib {
 
 
         Result<int> add_meeting(const Meeting&) noexcept;
+        Result<Meeting> find_meeting(int) noexcept;
         ErrorCode add_meeting_to_user(const Meeting&, int) noexcept;
 
         Result<std::vector<Meeting>> get_user_meeting(int) noexcept;
