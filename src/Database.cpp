@@ -273,7 +273,7 @@ namespace MeetingLib
         }
     }
 
-    Database::Result<std::vector<Meeting>> Database::get_user_meeting(int id) noexcept {
+    Database::Result<std::vector<Meeting>> Database::get_user_meetings(int id) noexcept {
         auto found_user = find_user(id);
         if(found_user.m_err != ErrorCode::ok) {
             return { .m_err = found_user.m_err };
@@ -304,7 +304,7 @@ namespace MeetingLib
         return { .m_some = output, .m_err = ErrorCode::ok };
     }
  
-    Database::Result<std::vector<Meeting>> Database::get_user_meeting(int id, const Date& date) noexcept {
+    Database::Result<std::vector<Meeting>> Database::get_user_meetings(int id, const Date& date) noexcept {
         auto found_user = find_user(id);
         if(found_user.m_err != ErrorCode::ok) {
             return { .m_err = found_user.m_err };
@@ -356,6 +356,8 @@ namespace MeetingLib
         std::string update_query = 
             "update Meetings SET date = \'";
         update_query += date_to_string(new_meeting.get_date());
+        update_query += "\', start = \'";
+        update_query += std::to_string(new_meeting.get_start().count());
         update_query += "\', duration = \'";
         update_query += std::to_string(new_meeting.get_duration().count());
         update_query += "\' where id = \'";
@@ -390,6 +392,36 @@ namespace MeetingLib
     
         return ErrorCode::ok;
     }
+
+    // Database::Result<Meeting> Database::arrange_meeting(const Meeting& meeting_data, std::vector<int> user_ids) {
+    //     std::vector<Meeting> meetings;
+    //     for(int user_id : user_ids) {
+    //         auto user_meetings = get_user_meetings(user_id);
+    //         if(user_meetings.m_err != ErrorCode::ok) {
+    //             return { .m_err = user_meetings.m_err };
+    //         }
+            
+    //         for(const auto& meeting : *user_meetings.m_some) {
+    //             meetings.push_back(meeting);
+    //         }
+    //     }
+
+    //     // if a good spare date is found it is set to true
+    //     bool found_match = false;
+    //     while(!found_match) {
+    //         for(const auto meeting : meetings) {
+    //             if(
+    //                 (meeting.get_start() <= meeting_data.get_start() && 
+    //                 meeting.get_start() + meeting.get_duration() > meeting_data.get_start()) ||
+    //                 (meeting_data.get_start() <= meeting.get_start() && 
+    //                 meeting_data.get_start() + meeting_data.get_duration() > meeting.get_start())
+    //                 ) {
+
+    //                 }
+    //         }
+    //     }
+
+    // }
 
     void Database::create()
     {

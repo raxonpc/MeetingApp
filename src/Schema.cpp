@@ -65,7 +65,7 @@ namespace MeetingLib
             };
         }
 
-        if(start.count() <= 0) {
+        if(start.count() <= 0 && start.count() <= 23) {
             throw std::runtime_error{
                 "Invalid start!"
             };
@@ -76,9 +76,9 @@ namespace MeetingLib
                 "Invalid duration!"
             };
         }
-        m_start = start;
-        m_duration = duration;
-        m_date = date;
+        set_start(start);
+        set_duration(duration);
+        set_date(date);
     }
 
     Meeting::Meeting(const Date& date, const Hours& start, const Hours& duration, int id)
@@ -88,7 +88,7 @@ namespace MeetingLib
                 "Invalid date!"
             };
         }
-        if(start.count() < 0) {
+        if(start.count() < 0 && start.count() <= 23) {
             throw std::runtime_error{
                 "Invalid start!"
             };
@@ -98,9 +98,9 @@ namespace MeetingLib
                 "Invalid duration!"
             };
         }
-        m_date = date;
-        m_start = start;
-        m_duration = duration;
+        set_date(date);
+        set_start(start);
+        set_duration(duration);
         set_id(id);
     }
 
@@ -132,7 +132,7 @@ namespace MeetingLib
     }
 
     void Meeting::set_start(const Hours& start) noexcept {
-        if(start.count() >= 0) {
+        if(start.count() >= 0 && start.count() <= 23) {
             m_start = start;
         }
     }
@@ -140,6 +140,21 @@ namespace MeetingLib
     void Meeting::set_duration(const Hours& duration) noexcept {
         if(duration.count() > 0) {
             m_duration = duration;
+        }
+    }
+
+    void Meeting::postpone_by(const Hours& hours) noexcept {
+        m_start += hours;
+        while(m_start.count() >= 24) {
+            m_start -= Hours{ 24 };
+
+            // C++ MOMENT  - year_month_day does not have an overload for adding days
+            //  yet you can add both years and months
+
+            // that's why im doing a cast
+            auto days = std::chrono::sys_days{ m_date };
+            days += std::chrono::days{ 1 };
+            m_date = static_cast<Date>(days);
         }
     }
 

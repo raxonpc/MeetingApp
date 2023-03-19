@@ -46,10 +46,10 @@ namespace MeetingLib {
         ErrorCode update_meeting(int id, const Meeting& new_meeting) noexcept;
         ErrorCode delete_meeting(int id) noexcept;
 
-        Result<std::vector<Meeting>> get_user_meeting(int id) noexcept;
-        Result<std::vector<Meeting>> get_user_meeting(int id, const Date& date) noexcept;
+        Result<std::vector<Meeting>> get_user_meetings(int id) noexcept;
+        Result<std::vector<Meeting>> get_user_meetings(int id, const Date& date) noexcept;
 
-        //Result<Meeting> arrange_meeting(const Meeting& meeting_data, std::vector<int> user_ids);
+        // Result<Meeting> arrange_meeting(const Meeting& meeting_data, std::vector<int> user_ids);
 
     private:
         struct Impl;

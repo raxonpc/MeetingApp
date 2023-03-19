@@ -116,6 +116,31 @@ TEST_CASE( "should convert a date to string", "[meeting]") {
     REQUIRE(converted == expected);
 }
 
+TEST_CASE( "should postpone a meeting", "[meeting]") {
+    SECTION( "simple postponing" ) {
+        const Meeting meeting{ std::chrono::day{22}/3/2023, Hours{ 12 }, Hours{ 2 }};
+        const Meeting expected{ std::chrono::day{22}/3/2023, Hours{ 14 }, Hours{ 2 }};
+
+        Meeting postponed = meeting;
+
+        postponed.postpone_by(Hours{ 2 });
+        REQUIRE(postponed.get_date() == expected.get_date());
+        REQUIRE(postponed.get_start() == expected.get_start());
+    }
+
+    SECTION( "postponing that changes the date" ) {
+        const Meeting meeting{ std::chrono::day{22}/3/2023, Hours{ 23 }, Hours{ 2 }};
+        const Meeting expected{ std::chrono::day{23}/3/2023, Hours{ 1 }, Hours{ 2 }};
+
+        Meeting postponed = meeting;
+
+        postponed.postpone_by(Hours{ 2 });
+        REQUIRE(postponed.get_date() == expected.get_date() );
+        REQUIRE(postponed.get_start() == expected.get_start());
+    }
+
+}
+
 TEST_CASE( "inserting meeting into database", "[meeting][database]") {
     Meeting meeting{ std::chrono::day{22}/3/2023, Hours{ 12 }, Hours{ 2 }};
     
@@ -185,7 +210,7 @@ TEST_CASE( "fetching users' meetings from database", "[user][meeting][database]"
         code = db.add_meeting_to_user(meeting, *added_user.m_some);
         REQUIRE(code == Database::ErrorCode::ok);
 
-        auto meetings = db.get_user_meeting(*added_user.m_some);
+        auto meetings = db.get_user_meetings(*added_user.m_some);
         REQUIRE(meetings.m_err == Database::ErrorCode::ok);
 
         REQUIRE(meetings.m_some->size() == 2);
@@ -212,7 +237,7 @@ TEST_CASE( "fetching users' meetings from database", "[user][meeting][database]"
         code = db.add_meeting_to_user(meeting2, *added_user.m_some);
         REQUIRE(code == Database::ErrorCode::ok);
 
-        auto meetings = db.get_user_meeting(*added_user.m_some, meeting1.get_date());
+        auto meetings = db.get_user_meetings(*added_user.m_some, meeting1.get_date());
         REQUIRE(meetings.m_err == Database::ErrorCode::ok);
 
         REQUIRE(meetings.m_some->size() == 1);

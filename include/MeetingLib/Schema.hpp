@@ -42,6 +42,8 @@ public:
     void set_date(const Date&) noexcept;
     void set_start(const Hours&) noexcept;
     void set_duration(const Hours&) noexcept;
+
+    void postpone_by(const Hours&) noexcept;
 private:
     Date m_date{};
     Hours m_start{};
