@@ -297,6 +297,37 @@ namespace MeetingLib
         return { .m_some = output, .m_err = ErrorCode::ok };
     }
 
+    Database::ErrorCode Database::update_meeting(int id, const Meeting& new_meeting) noexcept {
+        auto meeting = find_meeting(id);
+        if(meeting.m_err != ErrorCode::ok) {
+            return meeting.m_err;
+        }
+
+        if(!new_meeting.get_date().ok()) {
+            return ErrorCode::invalidNickname;
+        }
+        if(new_meeting.get_duration().count() <= 0) {
+            return ErrorCode::invalidDuration;
+        }
+
+        std::string update_query = 
+            "update Meetings SET date = \'";
+        update_query += date_to_string(new_meeting.get_date());
+        update_query += "\', duration = \'";
+        update_query += std::to_string(new_meeting.get_duration().count());
+        update_query += "\' where id = \'";
+        update_query += std::to_string(id);
+        update_query += "\';";
+
+        int status = sqlite3_exec(m_impl->m_db, update_query.c_str(), nullptr, nullptr, nullptr);
+    
+        if(status != SQLITE_OK) {
+            return ErrorCode::internalError;
+        }
+    
+        return ErrorCode::ok;
+    }
+
     void Database::create()
     {
         static constexpr std::string_view create_base_query{

@@ -196,3 +196,25 @@ TEST_CASE( "fetching users' meetings from database", "[user][meeting][database]"
     }
 
 }
+
+TEST_CASE( "updating meeting in database", "[meeting][database]") {
+    Meeting meeting{ std::chrono::day{22}/3/2023, Hours{ 2 }};
+
+    Meeting new_meeting{ std::chrono::day{25}/4/2023, Hours{ 1 } };
+
+    SECTION("should insert to database and update it" ) {
+        Database db{ ":memory:" };
+
+        auto added = db.add_meeting(meeting);
+        REQUIRE(added.m_err == Database::ErrorCode::ok);
+
+        auto code = db.update_meeting(*added.m_some, new_meeting);
+        REQUIRE(code == Database::ErrorCode::ok);
+
+        auto found_meeting = db.find_meeting(*added.m_some);
+        
+        REQUIRE(found_meeting.m_err == Database::ErrorCode::ok);
+        REQUIRE(found_meeting.m_some->get_date() == new_meeting.get_date());
+        REQUIRE(found_meeting.m_some->get_duration() == new_meeting.get_duration());
+    }
+}

@@ -14,6 +14,7 @@ namespace MeetingLib {
             databaseNotCreated,
             invalidNickname,
             invalidDate,
+            invalidDuration,
             userAlreadyExists,
             userNotFound,
             meetingNotFound,
@@ -41,6 +42,8 @@ namespace MeetingLib {
         Result<Meeting> find_meeting(int id) noexcept;
         ErrorCode add_meeting_to_user(const Meeting& meeting, int user_id) noexcept;
         ErrorCode add_meeting_to_user(int user_id, int meeting_id) noexcept;
+
+        ErrorCode update_meeting(int id, const Meeting& new_meeting) noexcept;
 
         Result<std::vector<Meeting>> get_user_meeting(int id) noexcept;
 
