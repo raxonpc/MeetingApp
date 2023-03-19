@@ -29,19 +29,20 @@ namespace MeetingLib {
         Database(const std::filesystem::path& path_to_db);
         ~Database();
 
-        Result<int> add_user(const User&) noexcept;
-        Result<User> find_user(std::string_view) noexcept;
-        Result<User> find_user(int) noexcept;
+        Result<int> add_user(const User& user) noexcept;
+        Result<User> find_user(std::string_view nickname) noexcept;
+        Result<User> find_user(int id) noexcept;
 
-        ErrorCode update_user(int, std::string_view) noexcept;
-        ErrorCode delete_user(int) noexcept;
+        ErrorCode update_user(int id, std::string_view new_nickname) noexcept;
+        ErrorCode delete_user(int id) noexcept;
 
 
-        Result<int> add_meeting(const Meeting&) noexcept;
-        Result<Meeting> find_meeting(int) noexcept;
-        ErrorCode add_meeting_to_user(const Meeting&, int) noexcept;
+        Result<int> add_meeting(const Meeting& meeting) noexcept;
+        Result<Meeting> find_meeting(int id) noexcept;
+        ErrorCode add_meeting_to_user(const Meeting& meeting, int user_id) noexcept;
+        ErrorCode add_meeting_to_user(int user_id, int meeting_id) noexcept;
 
-        Result<std::vector<Meeting>> get_user_meeting(int) noexcept;
+        Result<std::vector<Meeting>> get_user_meeting(int id) noexcept;
 
     private:
         struct Impl;

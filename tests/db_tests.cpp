@@ -127,16 +127,28 @@ TEST_CASE( "inserting meeting into database", "[meeting][database]") {
     
 }
 
-TEST_CASE( "inserting meeting into database", "[user][meeting][database]") {
+TEST_CASE( "assigning meeting to user in database", "[user][meeting][database]") {
     Meeting meeting{ std::chrono::day{22}/3/2023, Hours{ 2 }};
     User user{ "Walter" };
 
-    SECTION( "should create a relationship" ) {
+    SECTION( "should create a new meeting and assign it" ) {
         Database db{ ":memory:" };
         auto added_user = db.add_user(user);
         REQUIRE(added_user.m_err == Database::ErrorCode::ok);
 
         auto code = db.add_meeting_to_user(meeting, *added_user.m_some);
+        REQUIRE(code == Database::ErrorCode::ok);
+    }
+
+    SECTION( "should assign an existing meeting" ) {
+        Database db{ ":memory:" };
+        auto added_user = db.add_user(user);
+        REQUIRE(added_user.m_err == Database::ErrorCode::ok);
+
+        auto added_meeting = db.add_meeting(meeting);
+        REQUIRE(added_meeting.m_err == Database::ErrorCode::ok);
+
+        auto code = db.add_meeting_to_user(*added_user.m_some, *added_meeting.m_some);
         REQUIRE(code == Database::ErrorCode::ok);
     }
     

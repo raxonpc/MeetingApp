@@ -215,21 +215,47 @@ namespace MeetingLib
         return { .m_some = output, .m_err = ErrorCode::ok };
     }
 
-    Database::ErrorCode Database::add_meeting_to_user(const Meeting& meeting, int id) noexcept {
+    Database::ErrorCode Database::add_meeting_to_user(const Meeting& meeting, int user_id) noexcept {
         auto added_meeting = add_meeting(meeting);
         if(added_meeting.m_err != ErrorCode::ok) {
             return added_meeting.m_err;
         }
 
-        auto found_user = find_user(id);
+        auto found_user = find_user(user_id);
         if(found_user.m_err != ErrorCode::ok) {
             return found_user.m_err;
         }
 
         std::string insert_query = "insert into Users_Meetings (user_id, meeting_id) values (";
-        insert_query += std::to_string(id);
+        insert_query += std::to_string(user_id);
         insert_query += ", ";
         insert_query += std::to_string(*added_meeting.m_some);
+        insert_query += ");";
+
+        int status = sqlite3_exec(m_impl->m_db, insert_query.c_str(), nullptr, nullptr, nullptr);
+    
+        switch(status) {
+            case SQLITE_CONSTRAINT: return ErrorCode::nonExistentField;
+            case SQLITE_OK: return ErrorCode::ok;
+            default: return ErrorCode::internalError;
+        }
+    }
+
+    Database::ErrorCode Database::add_meeting_to_user(int user_id, int meeting_id) noexcept {
+        auto found_meeting = find_meeting(meeting_id);
+        if(found_meeting.m_err != ErrorCode::ok) {
+            return found_meeting.m_err;
+        }
+
+        auto found_user = find_user(user_id);
+        if(found_user.m_err != ErrorCode::ok) {
+            return found_user.m_err;
+        }
+
+        std::string insert_query = "insert into Users_Meetings (user_id, meeting_id) values (";
+        insert_query += std::to_string(user_id);
+        insert_query += ", ";
+        insert_query += std::to_string(meeting_id);
         insert_query += ");";
 
         int status = sqlite3_exec(m_impl->m_db, insert_query.c_str(), nullptr, nullptr, nullptr);
