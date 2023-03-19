@@ -49,7 +49,7 @@ namespace MeetingLib {
         Result<std::vector<Meeting>> get_user_meetings(int id) noexcept;
         Result<std::vector<Meeting>> get_user_meetings(int id, const Date& date) noexcept;
 
-        // Result<Meeting> arrange_meeting(const Meeting& meeting_data, std::vector<int> user_ids);
+        Result<int> arrange_meeting(Meeting meeting_data, const std::vector<int>& user_ids) noexcept;
 
     private:
         struct Impl;

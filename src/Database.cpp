@@ -393,35 +393,56 @@ namespace MeetingLib
         return ErrorCode::ok;
     }
 
-    // Database::Result<Meeting> Database::arrange_meeting(const Meeting& meeting_data, std::vector<int> user_ids) {
-    //     std::vector<Meeting> meetings;
-    //     for(int user_id : user_ids) {
-    //         auto user_meetings = get_user_meetings(user_id);
-    //         if(user_meetings.m_err != ErrorCode::ok) {
-    //             return { .m_err = user_meetings.m_err };
-    //         }
+    Database::Result<int> Database::arrange_meeting(Meeting meeting_data, const std::vector<int>& user_ids) noexcept {
+        std::vector<Meeting> meetings;
+        for(int user_id : user_ids) {
+            auto user_meetings = get_user_meetings(user_id);
+            if(user_meetings.m_err != ErrorCode::ok) {
+                return { .m_err = user_meetings.m_err };
+            }
             
-    //         for(const auto& meeting : *user_meetings.m_some) {
-    //             meetings.push_back(meeting);
-    //         }
-    //     }
+            for(const auto& meeting : *user_meetings.m_some) {
+                meetings.push_back(meeting);
+            }
+        }
 
-    //     // if a good spare date is found it is set to true
-    //     bool found_match = false;
-    //     while(!found_match) {
-    //         for(const auto meeting : meetings) {
-    //             if(
-    //                 (meeting.get_start() <= meeting_data.get_start() && 
-    //                 meeting.get_start() + meeting.get_duration() > meeting_data.get_start()) ||
-    //                 (meeting_data.get_start() <= meeting.get_start() && 
-    //                 meeting_data.get_start() + meeting_data.get_duration() > meeting.get_start())
-    //                 ) {
+        // if a good spare date is found it is set to true
+        bool found_match = false;
+        while(!found_match) {
+            found_match = true;
+            for(const auto meeting : meetings) {
+                if(
+                    (meeting.get_start() <= meeting_data.get_start() && 
+                    meeting.get_start() + meeting.get_duration() > meeting_data.get_start()) ||
+                    (meeting_data.get_start() <= meeting.get_start() && 
+                    meeting_data.get_start() + meeting_data.get_duration() > meeting.get_start())
+                    ) {
+                        meeting_data.postpone_by(Hours{ 1 });
+                        if(meeting_data.get_start().count() == 0) {
+                            // so there are no night meetings
+                            meeting_data.postpone_by(Hours{ 8 });
+                        }
 
-    //                 }
-    //         }
-    //     }
+                            found_match = false;
+                            break;
+                        }
+                    }
+            }
 
-    // }
+        auto added_meeting = add_meeting(meeting_data);
+        if(added_meeting.m_err != ErrorCode::ok) {
+            return { .m_err = added_meeting.m_err };
+        }
+
+        for(int user_id : user_ids) {
+            auto code = add_meeting_to_user(user_id, *added_meeting.m_some);
+            if(code != ErrorCode::ok) {
+                return { .m_err = code };
+            }
+        }
+
+        return { .m_some = *added_meeting.m_some };
+    }
 
     void Database::create()
     {
