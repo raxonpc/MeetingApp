@@ -57,35 +57,49 @@ namespace MeetingLib
         }
     }
 
-    Meeting::Meeting(const Date& date, const Hours& duration)
+    Meeting::Meeting(const Date& date, const Hours& start, const Hours& duration)
     {
         if(!date.ok()) {
             throw std::runtime_error{
                 "Invalid date entered!"
             };
         }
+
+        if(start.count() <= 0) {
+            throw std::runtime_error{
+                "Invalid start!"
+            };
+        }
+
         if(duration.count() <= 0) {
             throw std::runtime_error{
                 "Invalid duration!"
             };
         }
+        m_start = start;
         m_duration = duration;
         m_date = date;
     }
 
-    Meeting::Meeting(const Date& date, const Hours& duration, int id)
+    Meeting::Meeting(const Date& date, const Hours& start, const Hours& duration, int id)
     {
         if(!date.ok()) {
             throw std::runtime_error{
                 "Invalid date!"
             };
         }
+        if(start.count() < 0) {
+            throw std::runtime_error{
+                "Invalid start!"
+            };
+        }
         if(duration.count() <= 0) {
             throw std::runtime_error{
                 "Invalid duration!"
             };
         }
         m_date = date;
+        m_start = start;
         m_duration = duration;
         set_id(id);
     }
@@ -95,6 +109,10 @@ namespace MeetingLib
     }
     Date Meeting::get_date() const noexcept {
         return m_date;
+    }
+
+    Hours Meeting::get_start() const noexcept {
+        return m_start;
     }
 
     Hours Meeting::get_duration() const noexcept {
@@ -110,6 +128,18 @@ namespace MeetingLib
     void Meeting::set_date(const Date& date) noexcept {
         if(date.ok()) {
             m_date = date;
+        }
+    }
+
+    void Meeting::set_start(const Hours& start) noexcept {
+        if(start.count() >= 0) {
+            m_start = start;
+        }
+    }
+
+    void Meeting::set_duration(const Hours& duration) noexcept {
+        if(duration.count() > 0) {
+            m_duration = duration;
         }
     }
 

@@ -15,6 +15,7 @@ namespace MeetingLib {
             invalidNickname,
             invalidDate,
             invalidDuration,
+            invalidStart,
             userAlreadyExists,
             userNotFound,
             meetingNotFound,
@@ -37,15 +38,18 @@ namespace MeetingLib {
         ErrorCode update_user(int id, std::string_view new_nickname) noexcept;
         ErrorCode delete_user(int id) noexcept;
 
-
         Result<int> add_meeting(const Meeting& meeting) noexcept;
         Result<Meeting> find_meeting(int id) noexcept;
         ErrorCode add_meeting_to_user(const Meeting& meeting, int user_id) noexcept;
         ErrorCode add_meeting_to_user(int user_id, int meeting_id) noexcept;
 
         ErrorCode update_meeting(int id, const Meeting& new_meeting) noexcept;
+        ErrorCode delete_meeting(int id) noexcept;
 
         Result<std::vector<Meeting>> get_user_meeting(int id) noexcept;
+        Result<std::vector<Meeting>> get_user_meeting(int id, const Date& date) noexcept;
+
+        //Result<Meeting> arrange_meeting(const Meeting& meeting_data, std::vector<int> user_ids);
 
     private:
         struct Impl;

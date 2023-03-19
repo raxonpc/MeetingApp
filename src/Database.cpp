@@ -158,7 +158,7 @@ namespace MeetingLib
     Database::Result<int> Database::add_meeting(const Meeting& meeting) noexcept {
         sqlite3_stmt *insert_stmt;
 
-        int status = sqlite3_prepare_v2(m_impl->m_db, "insert into Meetings (date, duration) values (?, ?);", -1, &insert_stmt, NULL);
+        int status = sqlite3_prepare_v2(m_impl->m_db, "insert into Meetings (date, start, duration) values (?, ?, ?);", -1, &insert_stmt, NULL);
         if (status != SQLITE_OK)
         {
             return { .m_err = ErrorCode::internalError };
@@ -168,7 +168,12 @@ namespace MeetingLib
         {
             return { .m_err = ErrorCode::internalError };
         }
-        status = sqlite3_bind_int(insert_stmt, 2, meeting.get_duration().count());
+        status = sqlite3_bind_int(insert_stmt, 2, meeting.get_start().count());
+        if (status != SQLITE_OK)
+        {
+            return { .m_err = ErrorCode::internalError };
+        }
+        status = sqlite3_bind_int(insert_stmt, 3, meeting.get_duration().count());
         if (status != SQLITE_OK)
         {
             return { .m_err = ErrorCode::internalError };
@@ -199,6 +204,7 @@ namespace MeetingLib
             sscanf(argv[1], "%d/%d/%d", &year, &month, &day);
             *meeting = Meeting{ Date{ std::chrono::day{day}/month/year },
                                       std::chrono::hours{ std::atoi(argv[2]) },
+                                      std::chrono::hours{ std::atoi(argv[3]) },
                                       std::stoi(argv[0]) };
             return 0;
         };
@@ -281,6 +287,7 @@ namespace MeetingLib
             sscanf(argv[1], "%d/%d/%d", &year, &month, &day);
             meeting_vec->emplace_back(Date{ std::chrono::day{day}/month/year },
                                       std::chrono::hours{ std::atoi(argv[2]) },
+                                      std::chrono::hours{ std::atoi(argv[3]) },
                                       std::stoi(argv[0]));
             return 0;
         };
@@ -288,6 +295,39 @@ namespace MeetingLib
         std::string query = "SELECT Meetings.* FROM Meetings "
                             "JOIN Users_Meetings ON Meetings.id = Users_Meetings.meeting_id "
                             "WHERE Users_Meetings.user_id = " + std::to_string(id);
+
+        std::vector<Meeting> output;
+        int status = sqlite3_exec(m_impl->m_db, query.c_str(), add_callback, (void*)&output, nullptr);
+        if(status != SQLITE_OK) {
+            return { .m_some = std::nullopt, .m_err = ErrorCode::internalError };
+        }
+        return { .m_some = output, .m_err = ErrorCode::ok };
+    }
+ 
+    Database::Result<std::vector<Meeting>> Database::get_user_meeting(int id, const Date& date) noexcept {
+        auto found_user = find_user(id);
+        if(found_user.m_err != ErrorCode::ok) {
+            return { .m_err = found_user.m_err };
+        }
+
+        auto add_callback = [](void* out, int argc, char** argv, char** colNames) {
+            auto meeting_vec = static_cast<std::vector<Meeting>*>(out);
+            int year = 0;
+            int month = 0;
+            unsigned int day = 0;
+            sscanf(argv[1], "%d/%d/%d", &year, &month, &day);
+            meeting_vec->emplace_back(Date{ std::chrono::day{day}/month/year },
+                                      std::chrono::hours{ std::atoi(argv[2]) },
+                                      std::chrono::hours{ std::atoi(argv[3]) },
+                                      std::stoi(argv[0]));
+            return 0;
+        };
+
+        std::string query = "SELECT Meetings.* FROM Meetings "
+                            "JOIN Users_Meetings ON Meetings.id = Users_Meetings.meeting_id "
+                            "WHERE Users_Meetings.user_id = " + std::to_string(id);
+        
+        query += " AND date = \'" + date_to_string(date) + "\';";
 
         std::vector<Meeting> output;
         int status = sqlite3_exec(m_impl->m_db, query.c_str(), add_callback, (void*)&output, nullptr);
@@ -305,6 +345,9 @@ namespace MeetingLib
 
         if(!new_meeting.get_date().ok()) {
             return ErrorCode::invalidNickname;
+        }
+        if(new_meeting.get_start().count() < 0) {
+            return ErrorCode::invalidStart;
         }
         if(new_meeting.get_duration().count() <= 0) {
             return ErrorCode::invalidDuration;
@@ -328,6 +371,26 @@ namespace MeetingLib
         return ErrorCode::ok;
     }
 
+    Database::ErrorCode Database::delete_meeting(int id) noexcept {
+        auto found_meeting = find_meeting(id);
+
+        if(found_meeting.m_err != ErrorCode::ok) {
+            return found_meeting.m_err;
+        }
+
+        std::string delete_query = "delete from Meetings where id = \'";
+        delete_query += std::to_string(id);
+        delete_query += "\';";
+
+        int status = sqlite3_exec(m_impl->m_db, delete_query.c_str(), nullptr, nullptr, nullptr);
+    
+        if(status != SQLITE_OK) {
+            return ErrorCode::internalError;
+        }
+    
+        return ErrorCode::ok;
+    }
+
     void Database::create()
     {
         static constexpr std::string_view create_base_query{
@@ -339,6 +402,7 @@ namespace MeetingLib
             "CREATE TABLE IF NOT EXISTS Meetings ("
             "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"
             "date TEXT NOT NULL,"
+            "start INTEGER NOT NULL,"
             "duration INTEGER NOT NULL);"
 
             "CREATE TABLE IF NOT EXISTS Users_Meetings ("

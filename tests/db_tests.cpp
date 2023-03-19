@@ -117,7 +117,7 @@ TEST_CASE( "should convert a date to string", "[meeting]") {
 }
 
 TEST_CASE( "inserting meeting into database", "[meeting][database]") {
-    Meeting meeting{ std::chrono::day{22}/3/2023, Hours{ 2 }};
+    Meeting meeting{ std::chrono::day{22}/3/2023, Hours{ 12 }, Hours{ 2 }};
     
     SECTION( "should insert to database" ) {
         Database db{ ":memory:" };
@@ -128,7 +128,7 @@ TEST_CASE( "inserting meeting into database", "[meeting][database]") {
 }
 
 TEST_CASE( "assigning meeting to user in database", "[user][meeting][database]") {
-    Meeting meeting{ std::chrono::day{22}/3/2023, Hours{ 2 }};
+    Meeting meeting{ std::chrono::day{22}/3/2023, Hours{ 12 }, Hours{ 2 }};
     User user{ "Walter" };
 
     SECTION( "should create a new meeting and assign it" ) {
@@ -155,7 +155,7 @@ TEST_CASE( "assigning meeting to user in database", "[user][meeting][database]")
 }
 
 TEST_CASE( "finding meeting in database", "[meeting][database]") {
-    Meeting meeting{ std::chrono::day{22}/3/2023, Hours{ 2 }};
+    Meeting meeting{ std::chrono::day{22}/3/2023, Hours{ 12 }, Hours{ 2 }};
     SECTION( "should insert to database and find it by id" ) {
         Database db{ ":memory:" };
         auto code = db.add_meeting(meeting);
@@ -166,12 +166,13 @@ TEST_CASE( "finding meeting in database", "[meeting][database]") {
         REQUIRE(found_meeting.m_err == Database::ErrorCode::ok);
         REQUIRE(found_meeting.m_some->get_id() == 1);
         REQUIRE(found_meeting.m_some->get_date() == meeting.get_date());
+        REQUIRE(found_meeting.m_some->get_start() == meeting.get_start());
         REQUIRE(found_meeting.m_some->get_duration() == meeting.get_duration());
     }
 }
 
 TEST_CASE( "fetching users' meetings from database", "[user][meeting][database]") {
-    Meeting meeting{ std::chrono::day{22}/3/2023, Hours{ 2 }};
+    Meeting meeting{ std::chrono::day{22}/3/2023, Hours{ 12 }, Hours{ 2 }};
     User user{ "Walter" };
 
     SECTION( "should return meetings" ) {
@@ -191,16 +192,41 @@ TEST_CASE( "fetching users' meetings from database", "[user][meeting][database]"
         REQUIRE(meetings.m_some->at(0).get_date() == meeting.get_date());
         REQUIRE(meetings.m_some->at(1).get_date() == meeting.get_date());
 
+        REQUIRE(meetings.m_some->at(0).get_start() == meeting.get_start());
+        REQUIRE(meetings.m_some->at(1).get_start() == meeting.get_start());
+
         REQUIRE(meetings.m_some->at(0).get_duration() == meeting.get_duration());
         REQUIRE(meetings.m_some->at(1).get_duration() == meeting.get_duration());
+    }
+
+    SECTION( "should return meetings at a given date" ) {
+        Database db{ ":memory:" };
+        auto added_user = db.add_user(user);
+        REQUIRE(added_user.m_err == Database::ErrorCode::ok);
+
+        Meeting meeting1{ std::chrono::day{22}/3/2023, Hours{ 12 }, Hours{ 2 }};
+        Meeting meeting2{ std::chrono::day{23}/3/2023, Hours{ 12 }, Hours{ 2 }};
+
+        auto code = db.add_meeting_to_user(meeting1, *added_user.m_some);
+        REQUIRE(code == Database::ErrorCode::ok);
+        code = db.add_meeting_to_user(meeting2, *added_user.m_some);
+        REQUIRE(code == Database::ErrorCode::ok);
+
+        auto meetings = db.get_user_meeting(*added_user.m_some, meeting1.get_date());
+        REQUIRE(meetings.m_err == Database::ErrorCode::ok);
+
+        REQUIRE(meetings.m_some->size() == 1);
+        REQUIRE(meetings.m_some->at(0).get_date() == meeting1.get_date());
+        REQUIRE(meetings.m_some->at(0).get_start() == meeting1.get_start());
+        REQUIRE(meetings.m_some->at(0).get_duration() == meeting1.get_duration());
     }
 
 }
 
 TEST_CASE( "updating meeting in database", "[meeting][database]") {
-    Meeting meeting{ std::chrono::day{22}/3/2023, Hours{ 2 }};
+    Meeting meeting{ std::chrono::day{22}/3/2023, Hours{ 12 }, Hours{ 2 }};
 
-    Meeting new_meeting{ std::chrono::day{25}/4/2023, Hours{ 1 } };
+    Meeting new_meeting{ std::chrono::day{25}/4/2023, Hours{ 12 }, Hours{ 1 } };
 
     SECTION("should insert to database and update it" ) {
         Database db{ ":memory:" };
@@ -215,6 +241,7 @@ TEST_CASE( "updating meeting in database", "[meeting][database]") {
         
         REQUIRE(found_meeting.m_err == Database::ErrorCode::ok);
         REQUIRE(found_meeting.m_some->get_date() == new_meeting.get_date());
+        REQUIRE(found_meeting.m_some->get_start() == new_meeting.get_start());
         REQUIRE(found_meeting.m_some->get_duration() == new_meeting.get_duration());
     }
 }

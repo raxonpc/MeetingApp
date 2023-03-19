@@ -30,18 +30,21 @@ private:
 
 struct Meeting {
 public:
-    Meeting(const Date& date, const Hours& duration);
-    Meeting(const Date& date, const Hours& duration, int id);
+    Meeting(const Date& date, const Hours& start, const Hours& duration);
+    Meeting(const Date& date, const Hours& start, const Hours& duration, int id);
     
     std::optional<int> get_id() const noexcept;
     Date get_date() const noexcept;
+    Hours get_start() const noexcept;
     Hours get_duration() const noexcept;
 
     void set_id(int) noexcept;
     void set_date(const Date&) noexcept;
+    void set_start(const Hours&) noexcept;
     void set_duration(const Hours&) noexcept;
 private:
     Date m_date{};
+    Hours m_start{};
     Hours m_duration{};
     std::optional<int> m_id{ std::nullopt };
 };
