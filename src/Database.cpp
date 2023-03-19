@@ -406,6 +406,7 @@ namespace MeetingLib
             }
         }
 
+
         // if a good spare date is found it is set to true
         bool found_match = false;
         while(!found_match) {
@@ -423,11 +424,12 @@ namespace MeetingLib
                             meeting_data.postpone_by(Hours{ 8 });
                         }
 
-                            found_match = false;
-                            break;
-                        }
-                    }
+                        found_match = false;
+                        break;
+
+                }
             }
+        }
 
         auto added_meeting = add_meeting(meeting_data);
         if(added_meeting.m_err != ErrorCode::ok) {
