@@ -9,6 +9,11 @@ namespace MeetingLib
         sqlite3 *m_db;
     };
 
+    static constexpr std::array<Meeting 13> Database::get_holidays() const noexcept; 
+    
+
+
+
     Database::Database(const std::filesystem::path &path_to_db)
         : m_impl{new Impl}
     {

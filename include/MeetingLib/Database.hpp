@@ -27,6 +27,9 @@ namespace MeetingLib {
             std::optional<T> m_some;
             ErrorCode m_err{ ErrorCode::ok };
         };
+
+        static constexpr std::array<Meeting 13> get_holidays() const noexcept; 
+
     public:
         Database(const std::filesystem::path& path_to_db);
         ~Database();
