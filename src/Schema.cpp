@@ -65,7 +65,7 @@ namespace MeetingLib
             };
         }
 
-        if(start.count() <= 0 && start.count() <= 23) {
+        if(start.count() < 0 && start.count() <= 23) {
             throw std::runtime_error{
                 "Invalid start!"
             };
