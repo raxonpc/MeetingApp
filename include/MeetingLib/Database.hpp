@@ -4,6 +4,7 @@
 #include <vector>
 #include <utility>
 #include <string>
+#include <array>
 #include "Schema.hpp"
 		
 namespace MeetingLib {
@@ -27,6 +28,9 @@ namespace MeetingLib {
             std::optional<T> m_some;
             ErrorCode m_err{ ErrorCode::ok };
         };
+
+        static std::array<Meeting, 9> get_holidays(); 
+
     public:
         Database(const std::filesystem::path& path_to_db);
         ~Database();

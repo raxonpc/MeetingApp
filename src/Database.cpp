@@ -9,6 +9,25 @@ namespace MeetingLib
         sqlite3 *m_db;
     };
 
+    std::array<Meeting, 9> Database::get_holidays() 
+    {
+        static std::array<Meeting, 9> holidays {
+            Meeting{ { std::chrono::day{ 1 }/1/1970 }, Hours{ 0 }, Hours{ 24 } }, 
+            Meeting{ { std::chrono::day{ 6 }/1/1970 }, Hours{ 0 }, Hours{ 24 } }, 
+            Meeting{ { std::chrono::day{ 1 }/5/1970 }, Hours{ 0 }, Hours{ 24 } }, 
+            Meeting{ { std::chrono::day{ 3 }/5/1970 }, Hours{ 0 }, Hours{ 24 } },   
+            Meeting{ { std::chrono::day{ 15 }/8/1970 }, Hours{ 0 }, Hours{ 24 } }, 
+            Meeting{ { std::chrono::day{ 1 }/11/1970 }, Hours{ 0 }, Hours{ 24 } }, 
+            Meeting{ { std::chrono::day{ 11 }/11/1970 }, Hours{ 0 }, Hours{ 24 } }, 
+            Meeting{ { std::chrono::day{ 25 }/12/1970 }, Hours{ 0 }, Hours{ 24 } }, 
+            Meeting{ { std::chrono::day{ 26 }/12/1970 }, Hours{ 0 }, Hours{ 24 } }, 
+        };
+        return holidays;
+    } 
+    
+
+
+
     Database::Database(const std::filesystem::path &path_to_db)
         : m_impl{new Impl}
     {
@@ -429,6 +448,17 @@ namespace MeetingLib
 
                 }
             }
+
+            for(const auto holiday : get_holidays()){
+                if(
+                    holiday.get_date().day() == meeting_data.get_date().day() && 
+                    holiday.get_date().month() == meeting_data.get_date().month()
+                ){
+                    meeting_data.postpone_by(Hours{ 24 });
+                    found_match = false;
+                    break;
+                }            
+            }          
         }
 
         auto added_meeting = add_meeting(meeting_data);

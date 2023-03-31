@@ -305,8 +305,8 @@ TEST_CASE( "arranging meeting", "[user][meeting][database]") {
         REQUIRE(found_new_meeting.m_some->get_duration() == expected.get_duration());
     }
 
-    const Meeting meeting3{ std::chrono::day{22}/3/2023, Hours{ 23 }, Hours{ 2 }};
     SECTION("should arrange a meeting in the morning" ) {
+        const Meeting meeting3{ std::chrono::day{22}/3/2023, Hours{ 23 }, Hours{ 2 }};
         Meeting to_be_arranged{ std::chrono::day{22}/3/2023, Hours{ 22 }, Hours{ 3 }};
         const Meeting expected{ std::chrono::day{23}/3/2023, Hours{ 8 }, Hours{ 3 }};
 
@@ -322,6 +322,31 @@ TEST_CASE( "arranging meeting", "[user][meeting][database]") {
         code = db.add_meeting_to_user(meeting2, *added2.m_some);
         REQUIRE(code == Database::ErrorCode::ok);
         code = db.add_meeting_to_user(meeting3, *added2.m_some);
+        REQUIRE(code == Database::ErrorCode::ok);
+
+        auto new_meeting = db.arrange_meeting(to_be_arranged, { *added1.m_some, *added2.m_some});
+        REQUIRE(new_meeting.m_err == Database::ErrorCode::ok);
+
+        auto found_new_meeting = db.find_meeting(*new_meeting.m_some);
+        REQUIRE(found_new_meeting.m_err == Database::ErrorCode::ok);
+        REQUIRE(found_new_meeting.m_some->get_date() == expected.get_date());
+        REQUIRE(found_new_meeting.m_some->get_start() == expected.get_start());
+        REQUIRE(found_new_meeting.m_some->get_duration() == expected.get_duration());
+    }
+
+    SECTION("should arrange a meeting after a holiday" ) {
+        const Meeting meeting3{ std::chrono::day{24}/12/2023, Hours{ 22 }, Hours{ 2 }};
+        Meeting to_be_arranged{ std::chrono::day{24}/12/2023, Hours{ 22 }, Hours{ 3 }};
+        const Meeting expected{ std::chrono::day{27}/12/2023, Hours{ 8 }, Hours{ 3 }};
+
+        Database db{ ":memory:" };
+
+        auto added1 = db.add_user(user1);
+        auto added2 = db.add_user(user2);
+        REQUIRE(added1.m_err == Database::ErrorCode::ok);
+        REQUIRE(added2.m_err == Database::ErrorCode::ok);
+
+        auto code = db.add_meeting_to_user(meeting3, *added1.m_some);
         REQUIRE(code == Database::ErrorCode::ok);
 
         auto new_meeting = db.arrange_meeting(to_be_arranged, { *added1.m_some, *added2.m_some});
