@@ -9,6 +9,38 @@
 #include <iostream>
 #include <ftxui/dom/table.hpp>
 
+ftxui::Element render_meeting_table(const std::vector<MeetingLib::Meeting>& meetings) {
+    using namespace ftxui;
+    auto table = std::vector<Element>{};
+    table.reserve(meetings.size() + 2);
+    table.push_back({ separator() });
+    auto top_row = hbox(
+        text("Id"),
+        separator(),
+        text("Date[yyyy/mm/dd]"),
+        separator(),
+        text("Time[h]"),
+        separator(),
+        text("Duration[h]")
+    );
+    table.push_back(top_row);
+
+    for(const auto meeting: meetings) {
+        auto row = hbox(
+                text(std::to_string(*meeting.get_id())),
+                separator(),
+                text(MeetingLib::date_to_string(meeting.get_date())),
+                separator(),
+                text(std::to_string(meeting.get_start().count())),
+                separator(),
+                text(std::to_string(meeting.get_duration().count()))
+                );
+
+        table.push_back(row);
+    }
+    return vbox(table);
+}
+
 int main() {
     using namespace ftxui;
     using namespace MeetingLib;
@@ -23,15 +55,6 @@ int main() {
     std::string error_view{};
 
     auto input_username_view_options = InputOption{};
-    auto top_row = std::vector<std::string>{ "Id", "Date", "Time[h]", "Duration[h]"};
-    auto view_table = Table({
-        top_row,
-        { "1", "22/4/2023", "12", "3" }
-    });
-//    view_table.SelectAll().Border(LIGHT);
-//    view_table.SelectRow(0).Decorate(bold);
-//    view_table.SelectRow(0).SeparatorVertical(LIGHT);
-//    view_table.SelectRow(0).Border(DOUBLE);
 
     input_username_view_options.on_enter = [&db, &username_view, &error_view, &screen]() {
         if(!is_nickname_valid(username_view)) {
@@ -136,7 +159,7 @@ int main() {
 
                 auto component = Container::Vertical({
                                                          input_username_view,
-                                                         exit_button
+                                                         exit_button,
                                                      });
 
                 auto renderer = Renderer(component, [&] {
@@ -144,9 +167,9 @@ int main() {
                             {
                                 text("View user's meetings"),
                                 hbox(text(" Username : "), input_username_view->Render()),
-                                hbox(text( error_view)),
+                                text( error_view),
                                 exit_button->Render(),
-                                view_table.Render()
+                                render_meeting_table(meetings_view)
                             }
                     );
                 });
