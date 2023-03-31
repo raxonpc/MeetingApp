@@ -6,6 +6,9 @@
 
 MeetingApp is an open-source and cross-platform application, which simplifies the process of arranging business meetings.
 
+(NOTE - the project lacks an interactive example. It is meant to be used solely as a
+library)
+
 ## Table of Contents
 
 - [MeetingApp](#meetingapp)
@@ -23,14 +26,36 @@ The app allows one to arrange meetings with other users. It suggests the date wh
 
 ## Usage
 
-`TODO`
+Before building MeetingApp, make sure you have all the build dependencies:
+
+- A C++ compiler (preferably C++20 compliant)
+- CMake
+
+You also need the sqlite3 library.
+
+Ubuntu example: 
+```sh
+sudo apt install build-essential libsqlite3-dev cmake
+gh repo clone raxonpc/MeetingApp
+cd MeetingApp
+mkdir build
+cd build
+cmake ..
+cmake --build .
+```
 
 ## Dependencies
 
-`TODO`
+ - sqlite3
+ - ftxui
+ - catch2
 
 ## Brief history
 
-MeetingApp was made for the March 2023 project contest on the ZaprogramujŻycie discord server. 
+MeetingApp was made for the March 2023 project contest on the ZaprogramujŻycie discord server.
+
+It was a collab of me and [Wojtek](https://github.com/Wojtus12), 
+for whom it was the first contact with Git and the C++ toolchain.
+I hope working with me helped him dig into the world of C++ programming.
 
 ![Zaprogramuj Życie Logo](https://zaprogramujzycie.pl/wp-content/uploads/2020/06/logo.png)
