@@ -5,7 +5,14 @@
 add_library(meeting_lib Schema.cpp Database.cpp ${HEADER_LIST})
 
 # We need this directory, and users of our library will need it too
-target_include_directories(meeting_lib PUBLIC ../include PRIVATE ${SQLite3_INCLUDE_DIRS})
+target_include_directories(meeting_lib
+        PUBLIC
+        $<BUILD_INTERFACE:${MeetingApp_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+
+        PRIVATE
+        ${SQLite3_INCLUDE_DIRS}
+        )
 target_link_libraries(meeting_lib ${SQLite3_LIBRARIES})
 
 # All users of this library will need at least C++20

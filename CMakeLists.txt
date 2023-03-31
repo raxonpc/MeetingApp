@@ -9,6 +9,7 @@ project(
 )
 
 option(MEETING_BUILD_TESTS "Build tests for Meeting" ON)
+option(MEETING_BUILD_APP "Build tui app" ON)
 
 # Prevent in-source builds
 if(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
@@ -33,4 +34,8 @@ add_subdirectory(src)
 if(MEETING_BUILD_TESTS)
     enable_testing()
     add_subdirectory(tests)
+endif()
+
+if(MEETING_BUILD_APP)
+    add_subdirectory(app)
 endif()
