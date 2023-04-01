@@ -35,6 +35,7 @@ namespace MeetingLib
         int status = sqlite3_open(path_to_db.c_str(), &m_impl->m_db);
         if (status != SQLITE_OK)
         {
+            delete m_impl;
             throw std::runtime_error{std::string{"Cannot open database: "} + path_to_db.c_str()};
         }
 
