@@ -4,10 +4,7 @@
 [![GitHub issues](https://img.shields.io/github/issues/raxonpc/MeetingApp)](https://github.com/raxonpc/MeetingApp/issues)
 ![GitHub stars](https://img.shields.io/github/stars/raxonpc/MeetingApp?style=social)
 
-MeetingApp is an open-source and cross-platform application, which simplifies the process of arranging business meetings.
-
-(NOTE - the project lacks an interactive example. It is meant to be used solely as a
-library)
+MeetingApp is an open-source and cross-platform library, which simplifies the process of arranging business meetings.
 
 ## Table of Contents
 
